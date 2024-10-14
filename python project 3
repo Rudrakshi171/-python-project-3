@@ -1,0 +1,43 @@
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
+
+# Load datasets
+movies = pd.read_csv('movies.csv')
+ratings = pd.read_csv('ratings.csv')
+import pandas as pd
+
+# Read the CSV files
+ratings = pd.read_csv('ratings.csv')
+movies = pd.read_csv('movies.csv')
+
+# Print the column names to verify
+print("Ratings Columns:", ratings.columns.tolist())
+print("Movies Columns:", movies.columns.tolist())
+
+
+# Merge datasets
+data = pd.merge(ratings, movies, on='movieId')
+# Strip any leading or trailing spaces in column names
+data.columns = data.columns.str.strip()
+
+# After merging ratings and movies
+print("Merged Data Columns:", data.columns.tolist())
+print(data.head())  # Display the first few rows of the merged DataFrame
+
+
+# Create user-item matrix
+user_movie_matrix = data.pivot_table(index='userId', columns='title', values='rating').fillna(0)
+
+# Calculate cosine similarity
+cosine_sim = cosine_similarity(user_movie_matrix.T)
+cosine_sim_df = pd.DataFrame(cosine_sim, index=user_movie_matrix.columns, columns=user_movie_matrix.columns)
+
+# Function to recommend movies
+def recommend_movies(movie_title, num_recommendations=5):
+    similar_movies = cosine_sim_df[movie_title].sort_values(ascending=False)[1:num_recommendations+1]
+    return similar_movies
+
+# Example: recommend movies similar to "Toy Story (1995)"
+recommendations = recommend_movies('Toy Story (1995)')
+print(recommendations)
